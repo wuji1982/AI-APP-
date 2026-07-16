@@ -1,0 +1,71 @@
+# ============ Python ============
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# ============ Virtual Environment ============
+venv/
+.venv/
+env/
+
+# ============ IDE ============
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ============ Environment Variables ============
+.env
+.env.local
+.env.production
+
+# ============ Database ============
+*.db
+*.sqlite3
+
+# ============ Node.js ============
+node_modules/
+frontend/mobile-app/node_modules/
+frontend/web-admin/node_modules/
+frontend/merchant-admin/node_modules/
+
+# ============ Build Output ============
+frontend/web-admin/dist/
+frontend/merchant-admin/dist/
+frontend/mobile-app/dist/
+
+# ============ Logs ============
+*.log
+logs/
+
+# ============ OS ============
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============ Docker ============
+# docker-compose override for local dev
+docker-compose.override.yml
+
+# ============ Test / Debug ============
+test-screenshots/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ============ Qoder / Repowiki (IDE 内部知识，不上传) ============
+.qoder/
+
+# ============ MinIO / Storage ============
+minio-data/
+
+# ============ Alembic ============
+# 保留 migrations，但忽略自动生成缓存
+backend/alembic/versions/*.pyc
