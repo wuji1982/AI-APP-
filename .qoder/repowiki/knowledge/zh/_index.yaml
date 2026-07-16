@@ -1,0 +1,27 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+branch: Q0DeR-MaG1C-BrAnCh-Fo2-NoN-GiT-Or-No-C0MmIt
+nodes_managed: true
+exported_at: "2026-07-15T03:58:12Z"
+modules:
+    "":
+        dir_name: AI星木商城容器编排与反向代理
+        title: AI星木商城容器编排与反向代理
+        scope:
+            - docker-compose.yml
+            - nginx.conf
+        source_files: []
+        children:
+            - backend
+        depends_on: []
+        related_to: []
+    backend:
+        dir_name: AI Agent 共享商城与拼团生态后端服务
+        title: AI Agent 共享商城与拼团生态后端服务
+        scope:
+            - backend/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
