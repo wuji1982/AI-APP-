@@ -1,0 +1,48 @@
+{
+  "pages": [
+    { "path": "pages/index/index", "style": { "navigationBarTitleText": "AI共享商城", "enablePullDownRefresh": true } },
+    { "path": "pages/mall/index", "style": { "navigationBarTitleText": "商城专区", "enablePullDownRefresh": true } },
+    { "path": "pages/group-buy/index", "style": { "navigationBarTitleText": "拼团专区", "enablePullDownRefresh": true } },
+    { "path": "pages/group-buy/detail", "style": { "navigationBarTitleText": "拼团详情" } },
+    { "path": "pages/order/index", "style": { "navigationBarTitleText": "我的订单", "enablePullDownRefresh": true } },
+    { "path": "pages/wallet/index", "style": { "navigationBarTitleText": "我的钱包" } },
+    { "path": "pages/mine/index", "style": { "navigationBarTitleText": "个人中心" } },
+    { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } },
+    { "path": "pages/contribution/index", "style": { "navigationBarTitleText": "贡献值明细" } },
+    { "path": "pages/coupon/index", "style": { "navigationBarTitleText": "消费券" } },
+    { "path": "pages/team/index", "style": { "navigationBarTitleText": "我的团队" } },
+    { "path": "pages/store/index", "style": { "navigationBarTitleText": "门店排名" } },
+    { "path": "pages/agent/index", "style": { "navigationBarTitleText": "AI助手" } },
+    { "path": "pages/message/index", "style": { "navigationBarTitleText": "消息" } },
+    { "path": "pages/chat/index", "style": { "navigationBarTitleText": "聊天" } },
+    { "path": "pages/friends/index", "style": { "navigationBarTitleText": "好友" } },
+    { "path": "pages/product/detail", "style": { "navigationBarTitleText": "商品详情" } },
+    { "path": "pages/cart/index", "style": { "navigationBarTitleText": "购物车" } },
+    { "path": "pages/address/index", "style": { "navigationBarTitleText": "收货地址" } },
+    { "path": "pages/address/edit", "style": { "navigationBarTitleText": "编辑地址" } },
+    { "path": "pages/settings/index", "style": { "navigationBarTitleText": "设置" } },
+    { "path": "pages/about/index", "style": { "navigationBarTitleText": "关于" } },
+    { "path": "pages/checkout/index", "style": { "navigationBarTitleText": "确认订单" } },
+    { "path": "pages/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
+    { "path": "pages/pay/index", "style": { "navigationBarTitleText": "支付" } },
+    { "path": "pages/notification/index", "style": { "navigationBarTitleText": "通知中心" } }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "AI共享商城",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#409eff",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页", "iconPath": "static/tab/home.png", "selectedIconPath": "static/tab/home-active.png" },
+      { "pagePath": "pages/mall/index", "text": "商城", "iconPath": "static/tab/mall.png", "selectedIconPath": "static/tab/mall-active.png" },
+      { "pagePath": "pages/group-buy/index", "text": "拼团", "iconPath": "static/tab/group.png", "selectedIconPath": "static/tab/group-active.png" },
+      { "pagePath": "pages/message/index", "text": "消息", "iconPath": "static/tab/message.png", "selectedIconPath": "static/tab/message-active.png" },
+      { "pagePath": "pages/wallet/index", "text": "钱包", "iconPath": "static/tab/wallet.png", "selectedIconPath": "static/tab/wallet-active.png" },
+      { "pagePath": "pages/mine/index", "text": "我的", "iconPath": "static/tab/mine.png", "selectedIconPath": "static/tab/mine-active.png" }
+    ]
+  }
+}
