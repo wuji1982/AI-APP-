@@ -33,6 +33,7 @@ from app.models.ecommerce import (
     CartItem, UserAddress, UserFavorite, ProductReview,
     Banner, Announcement, UserBrowseHistory
 )
+from app.models.notification import Notification, NotificationType
 
 __all__ = [
     "User", "UserWalletLog", "UserRole",
@@ -49,4 +50,5 @@ __all__ = [
     "PayMethod", "PayStatus", "RefundStatus", "LogisticsStatus",
     "CartItem", "UserAddress", "UserFavorite", "ProductReview",
     "Banner", "Announcement", "UserBrowseHistory",
+    "Notification", "NotificationType",
 ]

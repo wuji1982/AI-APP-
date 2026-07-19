@@ -174,3 +174,41 @@ class ResponseModel(BaseModel):
     code: int = 0
     message: str = "success"
     data: Optional[dict] = None
+
+
+# ========== 通知相关 ==========
+class NotificationInfo(BaseModel):
+    id: int
+    type: str
+    title: str
+    content: str
+    action_text: Optional[str] = None
+    action_url: Optional[str] = None
+    is_read: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class NotificationListResponse(BaseModel):
+    total: int
+    page: int
+    size: int
+    items: List[NotificationInfo]
+
+
+class UnreadCountResponse(BaseModel):
+    total: int
+    order: int
+    group: int
+    system: int
+    activity: int
+
+
+# ========== 用户搜索 ==========
+class UserSearchResult(BaseModel):
+    id: int
+    nickname: Optional[str] = None
+    phone_masked: str  # 脱敏手机号
+    avatar_url: Optional[str] = None

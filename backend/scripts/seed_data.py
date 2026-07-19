@@ -16,6 +16,7 @@ from app.models.product import Product, ProductCategory, ProductStatus, ProductS
 from app.models.store import Store, StoreStatus
 from app.models.group_buy import GroupBuySession, GroupBuyLevel, SessionStatus
 from app.models.ecommerce import Banner, Announcement
+from app.models.notification import Notification, NotificationType
 
 
 async def seed_products(session):
@@ -205,6 +206,29 @@ async def seed_announcements(session):
     print(f"  [OK] 公告: {len(announcements_data)} 条")
 
 
+async def seed_notifications(session):
+    """填充通知数据（给用户ID=1和2）"""
+    now = datetime.utcnow()
+    notifications_data = [
+        {"user_id": 1, "type": NotificationType.ORDER, "title": "订单已发货", "content": "您的订单 ORD20240001 已发货，快递单号 SF1234567890", "action_text": "查看物流", "is_read": False, "created_at": now - timedelta(hours=1)},
+        {"user_id": 1, "type": NotificationType.GROUP, "title": "拼团成功", "content": "恭喜！您参与的精酿啤酒初级团已成功，31人全部参团", "action_text": "查看详情", "is_read": False, "created_at": now - timedelta(hours=2)},
+        {"user_id": 1, "type": NotificationType.SYSTEM, "title": "系统升级通知", "content": "平台将于本周六凌晨2:00-4:00进行系统维护升级，届时部分功能可能暂时无法使用", "action_text": "", "is_read": True, "created_at": now - timedelta(days=1)},
+        {"user_id": 1, "type": NotificationType.ORDER, "title": "订单已完成", "content": "您的订单 ORD20240002 已自动确认收货，贡献值已发放至您的账户", "action_text": "去评价", "is_read": True, "created_at": now - timedelta(days=2)},
+        {"user_id": 1, "type": NotificationType.ACTIVITY, "title": "新品上架", "content": "法库精酿啤酒新口味上架，限时9折优惠，先到先得", "action_text": "去看看", "is_read": True, "created_at": now - timedelta(days=3)},
+        {"user_id": 1, "type": NotificationType.GROUP, "title": "拼团即将成团", "content": "您参与的五常大米拼团还差2人即可成团，快邀请好友加入", "action_text": "邀请好友", "is_read": False, "created_at": now - timedelta(hours=5)},
+        {"user_id": 1, "type": NotificationType.ORDER, "title": "退款到账通知", "content": "您的退款 RFD20240001 已处理完成，金额 ¥29.90 已原路返回", "action_text": "查看详情", "is_read": True, "created_at": now - timedelta(days=3)},
+        {"user_id": 2, "type": NotificationType.ORDER, "title": "订单已发货", "content": "您的订单 ORD20240003 已发货，请注意查收", "action_text": "查看物流", "is_read": False, "created_at": now - timedelta(hours=3)},
+        {"user_id": 2, "type": NotificationType.SYSTEM, "title": "欢迎加入AI星木", "content": "恭喜您注册成功！新用户即送20元消费券，快去商城看看吧", "action_text": "去商城", "is_read": False, "created_at": now - timedelta(days=1)},
+        {"user_id": 2, "type": NotificationType.ACTIVITY, "title": "新人福利活动", "content": "新用户首单满99减20，快来体验拼团购物吧！", "action_text": "立即参与", "is_read": False, "created_at": now - timedelta(hours=8)},
+    ]
+
+    for n in notifications_data:
+        notif = Notification(**n)
+        session.add(notif)
+
+    print(f"  [OK] 通知数据: {len(notifications_data)} 条")
+
+
 async def main():
     print("=" * 50)
     print("AI星木商城 - 数据库种子数据填充")
@@ -221,6 +245,7 @@ async def main():
         await seed_group_buy_sessions(session)
         await seed_banners(session)
         await seed_announcements(session)
+        await seed_notifications(session)
         await session.commit()
 
     print("=" * 50)

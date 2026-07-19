@@ -9,7 +9,7 @@ import logging
 
 from app.config import settings
 from app.database import engine, Base
-from app.api.v1 import auth, user, product, group_buy, contribution, points, coupon, store, admin, user_agent, im, payment, ecommerce, order, map_service
+from app.api.v1 import auth, user, product, group_buy, contribution, points, coupon, store, admin, user_agent, im, payment, ecommerce, order, map_service, notification
 from app.api.v1.websocket import router as ws_router
 from app.api.v1.agent_ws import router as agent_ws_router
 from app.middleware import GlobalExceptionMiddleware, RequestLoggingMiddleware
@@ -73,6 +73,7 @@ app.include_router(payment.router, prefix=f"{api_prefix}", tags=["支付/物流/
 app.include_router(ecommerce.router, prefix=f"{api_prefix}", tags=["电商通用"])
 app.include_router(order.router, prefix=f"{api_prefix}/order", tags=["订单管理"])
 app.include_router(map_service.router, prefix=f"{api_prefix}/map", tags=["地图服务"])
+app.include_router(notification.router, prefix=f"{api_prefix}", tags=["通知"])
 app.include_router(ws_router, tags=["WebSocket"])
 app.include_router(agent_ws_router, tags=["智能体WebSocket"])
 
