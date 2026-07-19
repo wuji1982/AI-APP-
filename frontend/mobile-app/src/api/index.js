@@ -81,6 +81,12 @@ export const createReview = (data) => request({ url: '/review', method: 'POST', 
 export const getUserInfo = () => request({ url: '/user/me' })
 export const getWallet = () => request({ url: '/user/wallet' })
 
+// 钱包
+export const getWalletSummary = () => request({ url: '/wallet/summary' })
+export const getBalanceLogs = (params = {}) => request({ url: `/wallet/balance-logs?asset_type=${params.asset_type || ''}&change_type=${params.change_type || ''}&page=${params.page || 1}&size=${params.size || 20}` })
+export const rechargeWallet = (amount, description) => request({ url: '/wallet/recharge', method: 'POST', data: { amount, description } })
+export const withdrawWallet = (amount, description) => request({ url: '/wallet/withdraw', method: 'POST', data: { amount, description } })
+
 // 贡献值
 export const getMyContributions = () => request({ url: '/contribution/my' })
 
