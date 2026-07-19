@@ -61,7 +61,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { request } from '@/api/index'
+import { getNotifications, markNotifRead, markAllNotifRead, deleteNotif, getUnreadCount } from '@/api/index'
 
 const activeTab = ref('all')
 const typeIcons = { order: '📦', group: '🎯', system: '📢', activity: '🎁' }
@@ -97,13 +97,21 @@ const updateTabCounts = () => {
 // 加载通知列表
 const loadNotifications = async () => {
   try {
-    const res = await request('/api/v1/notifications', 'GET')
-    if (res && Array.isArray(res)) {
-      notifications.value = res
+    const res = await getNotifications(activeTab.value === 'all' ? '' : activeTab.value)
+    if (res && res.items) {
+      notifications.value = res.items.map(item => ({
+        id: item.id,
+        type: item.type,
+        title: item.title,
+        content: item.content,
+        time: item.created_at,
+        read: item.is_read,
+        action_text: item.action_text || ''
+      }))
     }
   } catch (e) {
-    // 接口不存在时使用本地mock数据
     console.warn('通知接口不可用，使用mock数据:', e)
+    // 接口不可用时降级到mock数据
     notifications.value = [
       { id: 1, type: 'order', title: '订单已发货', content: '您的订单 ORD20240001 已发货，快递单号 SF1234567890', time: new Date().toISOString(), read: false, action_text: '查看物流' },
       { id: 2, type: 'group', title: '拼团成功', content: '恭喜！您参与的精酿啤酒初级团已成功，31人全部参团', time: new Date(Date.now() - 3600000).toISOString(), read: false, action_text: '查看详情' },
@@ -117,9 +125,27 @@ const loadNotifications = async () => {
   updateTabCounts()
 }
 
-const readNotif = (item) => {
-  item.read = true
-  updateTabCounts()
+// 加载未读数到tab
+const loadUnreadCounts = async () => {
+  try {
+    const res = await getUnreadCount()
+    if (res) {
+      tabs.value.forEach(tab => {
+        if (tab.key === 'all') tab.count = res.total || 0
+        else tab.count = res[tab.key] || 0
+      })
+    }
+  } catch (e) {
+    // 静默失败
+  }
+}
+
+const readNotif = async (item) => {
+  if (!item.read) {
+    try { await markNotifRead(item.id) } catch (e) { /* ignore */ }
+    item.read = true
+    updateTabCounts()
+  }
   if (item.action_text) {
     handleAction(item)
   }
@@ -141,7 +167,8 @@ const handleAction = (item) => {
   }
 }
 
-const markAllRead = () => {
+const markAllRead = async () => {
+  try { await markAllNotifRead() } catch (e) { /* ignore */ }
   notifications.value.forEach(n => n.read = true)
   updateTabCounts()
   uni.showToast({ title: '已全部标记已读', icon: 'success' })
@@ -150,11 +177,13 @@ const markAllRead = () => {
 const onNotifLongPress = (item) => {
   uni.showActionSheet({
     itemList: item.read ? ['删除通知'] : ['标记已读', '删除通知'],
-    success: (res) => {
+    success: async (res) => {
       if (!item.read && res.tapIndex === 0) {
+        try { await markNotifRead(item.id) } catch (e) { /* ignore */ }
         item.read = true
         updateTabCounts()
       } else {
+        try { await deleteNotif(item.id) } catch (e) { /* ignore */ }
         notifications.value = notifications.value.filter(n => n.id !== item.id)
         updateTabCounts()
         uni.showToast({ title: '已删除', icon: 'success' })
@@ -182,6 +211,7 @@ const goBack = () => uni.navigateBack()
 
 onMounted(() => {
   loadNotifications()
+  loadUnreadCounts()
 })
 </script>
 

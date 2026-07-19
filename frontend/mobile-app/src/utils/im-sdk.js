@@ -1,8 +1,22 @@
 /**
  * OpenIM JSSDK 封装
  * 用于H5端的即时通讯SDK封装
+ * 使用动态导入避免 Vite 预构建超时
  */
-import { getSDK, CbEvents } from '@openim/client-sdk'
+
+// 动态加载 SDK，避免阻塞页面
+let _sdkModule = null
+async function _loadSDKModule() {
+  if (!_sdkModule) {
+    try {
+      _sdkModule = await import('@openim/client-sdk')
+    } catch (e) {
+      console.warn('[IM SDK] 加载失败，IM功能不可用:', e)
+      _sdkModule = { getSDK: () => null, CbEvents: {} }
+    }
+  }
+  return _sdkModule
+}
 
 // OpenIM 服务器配置（从环境变量或默认值获取）
 const IM_CONFIG = {
@@ -14,15 +28,28 @@ const IM_CONFIG = {
 let IMSDK = null
 let _isLogin = false
 let _listeners = new Map()
+let _CbEvents = {}
 
 /**
  * 获取SDK实例（单例）
  */
-export function getIMSDK() {
+export async function getIMSDK() {
   if (!IMSDK) {
-    IMSDK = getSDK()
+    const mod = await _loadSDKModule()
+    _CbEvents = mod.CbEvents || {}
+    if (mod.getSDK) {
+      IMSDK = mod.getSDK()
+    }
   }
   return IMSDK
+}
+
+/**
+ * 获取事件常量（异步）
+ */
+export async function getCbEvents() {
+  await _loadSDKModule()
+  return _CbEvents
 }
 
 /**
@@ -39,7 +66,8 @@ export function uuid() {
  * @returns {Promise<boolean>}
  */
 export async function imLogin(userID, token) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return false
   try {
     await sdk.login({
       userID,
@@ -63,7 +91,8 @@ export async function imLogin(userID, token) {
  */
 export async function imLogout() {
   if (!_isLogin) return
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return
   try {
     await sdk.logout(uuid())
     _isLogin = false
@@ -78,8 +107,9 @@ export async function imLogout() {
  * @param {CbEvents} event - 事件名
  * @param {Function} handler - 处理函数
  */
-export function imOn(event, handler) {
-  const sdk = getIMSDK()
+export async function imOn(event, handler) {
+  const sdk = await getIMSDK()
+  if (!sdk) return
   sdk.on(event, handler)
   if (!_listeners.has(event)) {
     _listeners.set(event, [])
@@ -90,8 +120,9 @@ export function imOn(event, handler) {
 /**
  * 取消订阅IM事件
  */
-export function imOff(event, handler) {
-  const sdk = getIMSDK()
+export async function imOff(event, handler) {
+  const sdk = await getIMSDK()
+  if (!sdk) return
   sdk.off(event, handler)
   const handlers = _listeners.get(event)
   if (handlers) {
@@ -103,8 +134,9 @@ export function imOff(event, handler) {
 /**
  * 清除所有监听
  */
-export function imOffAll() {
-  const sdk = getIMSDK()
+export async function imOffAll() {
+  const sdk = await getIMSDK()
+  if (!sdk) { _listeners.clear(); return }
   _listeners.forEach((handlers, event) => {
     handlers.forEach(h => sdk.off(event, h))
   })
@@ -117,7 +149,8 @@ export function imOffAll() {
  * 获取会话列表（分页）
  */
 export async function getConversationList(offset = 0, count = 50) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return []
   const res = await sdk.getConversationListSplit({ offset, count }, uuid())
   return res.data || []
 }
@@ -126,7 +159,8 @@ export async function getConversationList(offset = 0, count = 50) {
  * 获取总未读数
  */
 export async function getTotalUnreadCount() {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return 0
   const res = await sdk.getTotalUnreadMsgCount(uuid())
   return res.data || 0
 }
@@ -135,7 +169,7 @@ export async function getTotalUnreadCount() {
  * 标记会话已读
  */
 export async function markConversationRead(conversationID) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
   await sdk.markConversationMessageAsRead(conversationID, uuid())
 }
 
@@ -143,7 +177,8 @@ export async function markConversationRead(conversationID) {
  * 删除会话
  */
 export async function deleteConversation(conversationID) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return
   await sdk.deleteConversationAndDeleteAllMsg(conversationID, uuid())
 }
 
@@ -153,7 +188,8 @@ export async function deleteConversation(conversationID) {
  * 获取好友列表（分页）
  */
 export async function getFriendList(offset = 0, count = 100) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return []
   const res = await sdk.getFriendListPage({ offset, count }, uuid())
   return res.data || []
 }
@@ -162,7 +198,8 @@ export async function getFriendList(offset = 0, count = 100) {
  * 获取好友申请列表（收到的）
  */
 export async function getFriendApplicationsReceived(offset = 0, count = 20) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return []
   const res = await sdk.getFriendApplicationListAsRecipient({ offset, count }, uuid())
   return res.data || []
 }
@@ -171,7 +208,8 @@ export async function getFriendApplicationsReceived(offset = 0, count = 20) {
  * 获取好友申请列表（发出的）
  */
 export async function getFriendApplicationsSent(offset = 0, count = 20) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return []
   const res = await sdk.getFriendApplicationListAsApplicant({ offset, count }, uuid())
   return res.data || []
 }
@@ -180,7 +218,8 @@ export async function getFriendApplicationsSent(offset = 0, count = 20) {
  * 发起好友申请
  */
 export async function addFriend(toUserID, reqMsg = '') {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return
   await sdk.addFriend({ toUserID, reqMsg }, uuid())
 }
 
@@ -188,7 +227,8 @@ export async function addFriend(toUserID, reqMsg = '') {
  * 接受好友申请
  */
 export async function acceptFriendApplication(toUserID, handleMsg = '') {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return
   await sdk.acceptFriendApplication({ toUserID, handleMsg }, uuid())
 }
 
@@ -196,7 +236,8 @@ export async function acceptFriendApplication(toUserID, handleMsg = '') {
  * 拒绝好友申请
  */
 export async function refuseFriendApplication(toUserID, handleMsg = '') {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return
   await sdk.refuseFriendApplication({ toUserID, handleMsg }, uuid())
 }
 
@@ -204,7 +245,8 @@ export async function refuseFriendApplication(toUserID, handleMsg = '') {
  * 删除好友
  */
 export async function deleteFriend(friendUserID) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return
   await sdk.deleteFriend(friendUserID, uuid())
 }
 
@@ -212,7 +254,8 @@ export async function deleteFriend(friendUserID) {
  * 设置好友备注
  */
 export async function updateFriendRemark(friendUserIDs, remark) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return
   await sdk.updateFriends({ friendUserIDs, remark }, uuid())
 }
 
@@ -220,7 +263,8 @@ export async function updateFriendRemark(friendUserIDs, remark) {
  * 获取黑名单列表
  */
 export async function getBlackList(offset = 0, count = 100) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return []
   const res = await sdk.getBlackList({ offset, count }, uuid())
   return res.data || []
 }
@@ -229,7 +273,8 @@ export async function getBlackList(offset = 0, count = 100) {
  * 加入黑名单
  */
 export async function addBlack(toUserID) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return
   await sdk.addBlack({ toUserID }, uuid())
 }
 
@@ -239,7 +284,8 @@ export async function addBlack(toUserID) {
  * 创建文本消息
  */
 export async function createTextMessage(text) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return null
   const res = await sdk.createTextMessage(text, uuid())
   return res.data
 }
@@ -248,7 +294,8 @@ export async function createTextMessage(text) {
  * 创建图片消息
  */
 export async function createImageMessage(sourcePicture, bigPicture, snapshotPicture, sourcePath) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return null
   const res = await sdk.createImageMessageByURL({
     sourcePicture, bigPicture, snapshotPicture, sourcePath
   }, uuid())
@@ -262,7 +309,8 @@ export async function createImageMessage(sourcePicture, bigPicture, snapshotPict
  * @param {MessageItem} message - 消息对象
  */
 export async function sendMessage(recvID, groupID, message) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
+  if (!sdk) return null
   const res = await sdk.sendMessage({ recvID, groupID, message }, uuid())
   return res.data
 }
@@ -271,7 +319,7 @@ export async function sendMessage(recvID, groupID, message) {
  * 获取历史消息
  */
 export async function getHistoryMessages(conversationID, count = 20, startClientMsgID = '') {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
   const res = await sdk.getAdvancedHistoryMessageList({
     conversationID,
     count,
@@ -285,7 +333,7 @@ export async function getHistoryMessages(conversationID, count = 20, startClient
  * 删除消息
  */
 export async function deleteMessage(conversationID, clientMsgID) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
   await sdk.deleteMessage({ conversationID, clientMsgID }, uuid())
 }
 
@@ -293,7 +341,7 @@ export async function deleteMessage(conversationID, clientMsgID) {
  * 撤回消息
  */
 export async function revokeMessage(conversationID, clientMsgID) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
   await sdk.revokeMessage({ conversationID, clientMsgID }, uuid())
 }
 
@@ -303,7 +351,7 @@ export async function revokeMessage(conversationID, clientMsgID) {
  * 获取已加入的群组列表
  */
 export async function getJoinedGroupList(offset = 0, count = 100) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
   const res = await sdk.getJoinedGroupListPage({ offset, count }, uuid())
   return res.data || []
 }
@@ -312,7 +360,7 @@ export async function getJoinedGroupList(offset = 0, count = 100) {
  * 获取群成员列表
  */
 export async function getGroupMembers(groupID) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
   const res = await sdk.getGroupMemberList({ groupID, filter: 0, offset: 0, count: 200 }, uuid())
   return res.data || []
 }
@@ -323,7 +371,7 @@ export async function getGroupMembers(groupID) {
  * 获取当前登录用户信息
  */
 export async function getSelfUserInfo() {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
   const res = await sdk.getSelfUserInfo(uuid())
   return res.data
 }
@@ -332,7 +380,7 @@ export async function getSelfUserInfo() {
  * 搜索用户
  */
 export async function getUsersInfo(userIDs) {
-  const sdk = getIMSDK()
+  const sdk = await getIMSDK()
   const res = await sdk.getUsersInfo(userIDs, uuid())
   return res.data || []
 }
@@ -343,4 +391,4 @@ export function isIMLogin() {
   return _isLogin
 }
 
-export { CbEvents }
+export const CbEvents = new Proxy({}, { get: (_, k) => _CbEvents[k] || k })

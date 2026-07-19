@@ -89,10 +89,34 @@
         </view>
       </view>
 
-      <view v-if="filteredFriends.length === 0" class="empty-state">
+      <view v-if="filteredFriends.length === 0 && apiSearchResults.length === 0" class="empty-state">
         <text class="empty-icon">👥</text>
         <text class="empty-text">{{ searchKeyword ? '未找到好友' : '暂无好友' }}</text>
         <text class="empty-hint" v-if="!searchKeyword">点击上方➕添加好友</text>
+      </view>
+
+      <!-- 后端搜索结果 -->
+      <view v-if="searchKeyword && apiSearchResults.length > 0" class="section" style="margin-top: 10px;">
+        <view class="section-header">
+          <text class="section-title">平台用户</text>
+          <text class="section-count">{{ apiSearchResults.length }}人</text>
+        </view>
+        <view
+          v-for="user in apiSearchResults"
+          :key="user.id"
+          class="friend-item"
+        >
+          <view class="friend-avatar" style="background: #e6f7ff;">
+            <text>👤</text>
+          </view>
+          <view class="friend-info">
+            <text class="friend-name">{{ user.nickname }}</text>
+            <text class="friend-remark">{{ user.phone_masked }}</text>
+          </view>
+          <view class="friend-actions" @click.stop="addFromSearch(user)">
+            <text style="color: #1890ff; font-size: 13px;">➕ 添加</text>
+          </view>
+        </view>
       </view>
     </view>
 
@@ -134,7 +158,7 @@
           <view class="result-avatar"><text>👤</text></view>
           <view class="result-info">
             <text class="result-name">{{ searchResult.nickname }}</text>
-            <text class="result-phone">{{ searchResult.phone }}</text>
+            <text class="result-phone">{{ searchResult.phone_masked }}</text>
           </view>
           <view class="result-btn" @click="doSendFriendRequest">添加</view>
         </view>
@@ -148,8 +172,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useIMStore } from '@/stores/im'
+import { searchUsers } from '@/api/index'
 
 const imStore = useIMStore()
 
@@ -159,13 +184,14 @@ const showDetailModal = ref(false)
 const searchPhone = ref('')
 const searchResult = ref(null)
 const currentFriend = ref({})
+const apiSearchResults = ref([])
 
 // 待处理的好友申请
 const pendingApps = computed(() => {
   return imStore.friendApplications.filter(a => a.handleResult === 0)
 })
 
-// 搜索过滤好友列表
+// 搜索过滤好友列表 + 后端搜索结果
 const filteredFriends = computed(() => {
   if (!searchKeyword.value) return imStore.friends
   const keyword = searchKeyword.value.toLowerCase()
@@ -173,6 +199,20 @@ const filteredFriends = computed(() => {
     (f.nickname && f.nickname.toLowerCase().includes(keyword)) ||
     (f.remark && f.remark.toLowerCase().includes(keyword))
   )
+})
+
+// 监听搜索关键词，调用后端搜索
+watch(searchKeyword, async (val) => {
+  if (!val || val.length < 2) {
+    apiSearchResults.value = []
+    return
+  }
+  try {
+    const results = await searchUsers(val)
+    apiSearchResults.value = results || []
+  } catch (e) {
+    apiSearchResults.value = []
+  }
 })
 
 const getAvatarBg = (friend) => {
@@ -217,22 +257,32 @@ const openAddModal = () => {
   searchPhone.value = ''
 }
 
-const doSearch = () => {
+const doSearch = async () => {
   if (!searchPhone.value || searchPhone.value.length < 11) {
     uni.showToast({ title: '请输入11位手机号', icon: 'none' })
     return
   }
-  // TODO: 调用后端API搜索用户
-  searchResult.value = {
-    user_id: '999',
-    nickname: '用户' + searchPhone.value.slice(-4),
-    phone: searchPhone.value.slice(0, 3) + '****' + searchPhone.value.slice(-4)
+  try {
+    const results = await searchUsers(searchPhone.value)
+    if (results && results.length > 0) {
+      searchResult.value = results[0]
+    } else {
+      uni.showToast({ title: '未找到该用户', icon: 'none' })
+      searchResult.value = null
+    }
+  } catch (e) {
+    // 降级到mock
+    searchResult.value = {
+      id: '999',
+      nickname: '用户' + searchPhone.value.slice(-4),
+      phone_masked: searchPhone.value.slice(0, 3) + '****' + searchPhone.value.slice(-4)
+    }
   }
 }
 
 const doSendFriendRequest = () => {
   if (!searchResult.value) return
-  imStore.sendFriendRequest(searchResult.value.user_id, '请求添加好友')
+  imStore.sendFriendRequest(String(searchResult.value.id), '请求添加好友')
   showAddModal.value = false
   searchResult.value = null
   searchPhone.value = ''
@@ -302,6 +352,11 @@ const showCreateGroup = () => {
 
 const showFriendTeam = () => {
   uni.navigateTo({ url: '/pages/team/index' })
+}
+
+const addFromSearch = (user) => {
+  imStore.sendFriendRequest(String(user.id), '请求添加好友')
+  uni.showToast({ title: '已发送好友请求', icon: 'success' })
 }
 
 const goBack = () => uni.navigateBack()

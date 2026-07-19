@@ -125,7 +125,7 @@
           <view class="result-avatar"><text>👤</text></view>
           <view class="result-info">
             <text class="result-name">{{ searchResult.nickname }}</text>
-            <text class="result-phone">{{ searchResult.phone }}</text>
+            <text class="result-phone">{{ searchResult.phone_masked }}</text>
           </view>
           <view class="result-btn" @click="doSendFriendRequest">添加</view>
         </view>
@@ -141,6 +141,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useIMStore } from '@/stores/im'
+import { searchUsers } from '@/api/index'
 
 const imStore = useIMStore()
 
@@ -231,29 +232,41 @@ const onConvLongPress = (conv) => {
   })
 }
 
-const doSearchUser = () => {
+const doSearchUser = async () => {
   if (!searchPhone.value || searchPhone.value.length < 11) {
     uni.showToast({ title: '请输入11位手机号', icon: 'none' })
     return
   }
-  // TODO: 调用后端API搜索用户
-  searchResult.value = {
-    user_id: '999',
-    nickname: '用户' + searchPhone.value.slice(-4),
-    phone: searchPhone.value.slice(0, 3) + '****' + searchPhone.value.slice(-4)
+  try {
+    const results = await searchUsers(searchPhone.value)
+    if (results && results.length > 0) {
+      searchResult.value = results[0]
+    } else {
+      uni.showToast({ title: '未找到该用户', icon: 'none' })
+      searchResult.value = null
+    }
+  } catch (e) {
+    // 降级到mock
+    searchResult.value = {
+      id: '999',
+      nickname: '用户' + searchPhone.value.slice(-4),
+      phone_masked: searchPhone.value.slice(0, 3) + '****' + searchPhone.value.slice(-4)
+    }
   }
 }
 
 const doSendFriendRequest = () => {
   if (!searchResult.value) return
-  imStore.sendFriendRequest(searchResult.value.user_id, '请求添加好友')
+  imStore.sendFriendRequest(String(searchResult.value.id), '请求添加好友')
   showAddFriendModal.value = false
   searchResult.value = null
   searchPhone.value = ''
 }
 
 const showSearch = () => {
-  uni.showToast({ title: '搜索功能开发中', icon: 'none' })
+  showAddFriendModal.value = true
+  searchResult.value = null
+  searchPhone.value = ''
 }
 
 const formatTime = (timestamp) => {

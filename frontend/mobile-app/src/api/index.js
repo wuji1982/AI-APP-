@@ -99,4 +99,14 @@ export const getMyTeam = (level) => request({ url: `/store/team?level=${level}` 
 export const getBanners = (position = 'home') => request({ url: `/banner/list?position=${position}` })
 export const getAnnouncements = (page = 1) => request({ url: `/announcement/list?page=${page}` })
 
+// 通知
+export const getNotifications = (type, page = 1, size = 20) => request({ url: `/notifications?type=${type || ''}&page=${page}&size=${size}` })
+export const getUnreadCount = () => request({ url: '/notifications/unread-count' })
+export const markNotifRead = (id) => request({ url: `/notifications/${id}/read`, method: 'PUT' })
+export const markAllNotifRead = () => request({ url: '/notifications/read-all', method: 'PUT' })
+export const deleteNotif = (id) => request({ url: `/notifications/${id}`, method: 'DELETE' })
+
+// 用户搜索
+export const searchUsers = (keyword) => request({ url: `/user/search?keyword=${keyword}` })
+
 export default request

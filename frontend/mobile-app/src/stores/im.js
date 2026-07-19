@@ -93,7 +93,7 @@ export const useIMStore = defineStore('im', {
      * 登出IM
      */
     async logout() {
-      imOffAll()
+      await imOffAll()
       await imLogout()
       this.$reset()
     },
@@ -101,47 +101,47 @@ export const useIMStore = defineStore('im', {
     /**
      * 设置SDK事件监听
      */
-    _setupListeners() {
+    async _setupListeners() {
       // 连接成功
-      imOn(CbEvents.OnConnectSuccess, () => {
+      await imOn(CbEvents.OnConnectSuccess, () => {
         this.connected = true
         console.log('[IM] 连接成功')
       })
 
       // 连接中
-      imOn(CbEvents.OnConnecting, () => {
+      await imOn(CbEvents.OnConnecting, () => {
         this.connecting = true
       })
 
       // 连接失败
-      imOn(CbEvents.OnConnectFailed, (data) => {
+      await imOn(CbEvents.OnConnectFailed, (data) => {
         this.connected = false
         this.connecting = false
         console.warn('[IM] 连接失败:', data)
       })
 
       // 被踢下线
-      imOn(CbEvents.OnKickedOffline, () => {
+      await imOn(CbEvents.OnKickedOffline, () => {
         this.connected = false
         this.loginStatus = false
         uni.showToast({ title: '您已被踢下线', icon: 'none' })
       })
 
       // Token过期
-      imOn(CbEvents.OnUserTokenExpired, () => {
+      await imOn(CbEvents.OnUserTokenExpired, () => {
         this.connected = false
         this.loginStatus = false
         uni.showToast({ title: 'Token已过期，请重新登录', icon: 'none' })
       })
 
       // 新会话
-      imOn(CbEvents.OnNewConversation, (data) => {
+      await imOn(CbEvents.OnNewConversation, (data) => {
         const newConvs = data || []
         this.conversations = [...newConvs, ...this.conversations]
       })
 
       // 会话更新
-      imOn(CbEvents.OnConversationChanged, (data) => {
+      await imOn(CbEvents.OnConversationChanged, (data) => {
         const changedConvs = data || []
         changedConvs.forEach(updated => {
           const idx = this.conversations.findIndex(c => c.conversationID === updated.conversationID)
@@ -154,7 +154,7 @@ export const useIMStore = defineStore('im', {
       })
 
       // 收到新消息
-      imOn(CbEvents.OnRecvNewMessage, (data) => {
+      await imOn(CbEvents.OnRecvNewMessage, (data) => {
         const msg = data
         if (msg && this.currentConversationID) {
           // 如果当前正在查看该会话，追加消息
@@ -170,32 +170,32 @@ export const useIMStore = defineStore('im', {
       })
 
       // 总未读数变化
-      imOn(CbEvents.OnTotalUnreadMessageCountChanged, (count) => {
+      await imOn(CbEvents.OnTotalUnreadMessageCountChanged, (count) => {
         this.totalUnread = count || 0
       })
 
       // 好友申请
-      imOn(CbEvents.OnFriendApplicationAdded, (data) => {
+      await imOn(CbEvents.OnFriendApplicationAdded, (data) => {
         this.friendApplications.unshift(data)
       })
 
       // 好友申请被接受
-      imOn(CbEvents.OnFriendApplicationAccepted, () => {
+      await imOn(CbEvents.OnFriendApplicationAccepted, () => {
         this.refreshFriends()
       })
 
       // 新好友
-      imOn(CbEvents.OnFriendAdded, (data) => {
+      await imOn(CbEvents.OnFriendAdded, (data) => {
         this.friends.push(data)
       })
 
       // 好友删除
-      imOn(CbEvents.OnFriendDeleted, (data) => {
+      await imOn(CbEvents.OnFriendDeleted, (data) => {
         this.friends = this.friends.filter(f => f.userID !== data.userID)
       })
 
       // 新群组
-      imOn(CbEvents.OnJoinedGroupAdded, (data) => {
+      await imOn(CbEvents.OnJoinedGroupAdded, (data) => {
         this.joinedGroups.push(data)
       })
     },

@@ -11,6 +11,9 @@ export default defineConfig({
       '@openim/protocol': path.resolve(__dirname, 'node_modules/@openim/protocol/lib/index.es.js'),
     }
   },
+  optimizeDeps: {
+    exclude: ['@openim/client-sdk', '@openim/protocol'],
+  },
   server: {
     port: 3001,
     proxy: {
