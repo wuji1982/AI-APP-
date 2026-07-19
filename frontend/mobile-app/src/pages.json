@@ -41,7 +41,6 @@
       { "pagePath": "pages/mall/index", "text": "商城", "iconPath": "static/tab/mall.png", "selectedIconPath": "static/tab/mall-active.png" },
       { "pagePath": "pages/group-buy/index", "text": "拼团", "iconPath": "static/tab/group.png", "selectedIconPath": "static/tab/group-active.png" },
       { "pagePath": "pages/message/index", "text": "消息", "iconPath": "static/tab/message.png", "selectedIconPath": "static/tab/message-active.png" },
-      { "pagePath": "pages/wallet/index", "text": "钱包", "iconPath": "static/tab/wallet.png", "selectedIconPath": "static/tab/wallet-active.png" },
       { "pagePath": "pages/mine/index", "text": "我的", "iconPath": "static/tab/mine.png", "selectedIconPath": "static/tab/mine-active.png" }
     ]
   }
